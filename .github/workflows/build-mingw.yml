@@ -12,6 +12,7 @@ jobs:
     strategy:
       matrix:
         arch: [i686, x86_64]
+        crt: [msvcrt, ucrt]
 
     outputs:
       GCC_VERSION: ${{ steps.build.outputs.GCC_VERSION }}
@@ -45,13 +46,13 @@ jobs:
 
       - name: build
         id: build
-        run: ./build.sh ${{ matrix.arch }}
+        run: ./build.sh ${{ matrix.arch }} ${{ matrix.crt }}
 
       - name: upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: gcc-v${{ steps.build.outputs.GCC_VERSION }}-mingw-v${{ steps.build.outputs.MINGW_VERSION }}-${{ matrix.arch }}
-          path: gcc-v${{ steps.build.outputs.GCC_VERSION }}-mingw-v${{ steps.build.outputs.MINGW_VERSION }}-${{ matrix.arch }}.7z
+          name: gcc-v${{ steps.build.outputs.GCC_VERSION }}-mingw-v${{ steps.build.outputs.MINGW_VERSION }}-${{ matrix.crt }}-${{ matrix.arch }}
+          path: gcc-v${{ steps.build.outputs.GCC_VERSION }}-mingw-v${{ steps.build.outputs.MINGW_VERSION }}-${{ matrix.crt }}-${{ matrix.arch }}.7z
           if-no-files-found: error
           compression-level: 0
 
