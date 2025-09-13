@@ -104,18 +104,22 @@ PREFIX=`pwd`/prefix-${CRT}/${TARGET}
 FINAL=`pwd`/${NAME}
 
 get https://github.com/facebook/zstd/releases/download/v${ZSTD_VERSION}/zstd-${ZSTD_VERSION}.tar.gz                  ${ZSTD_SHA256}
-get https://ftp.gnu.org/gnu/gmp/gmp-${GMP_VERSION}.tar.xz                                                            ${GMP_SHA256}
-get https://ftp.gnu.org/gnu/mpfr/mpfr-${MPFR_VERSION}.tar.xz                                                         ${MPFR_SHA256}
-get https://ftp.gnu.org/gnu/mpc/mpc-${MPC_VERSION}.tar.gz                                                            ${MPC_SHA256}
+get https://mirrors.kernel.org/gnu/gmp/gmp-${GMP_VERSION}.tar.xz                                                     ${GMP_SHA256}
+get https://mirrors.kernel.org/gnu/mpfr/mpfr-${MPFR_VERSION}.tar.xz                                                  ${MPFR_SHA256}
+get https://mirrors.kernel.org/gnu/mpc/mpc-${MPC_VERSION}.tar.gz                                                     ${MPC_SHA256}
 get https://libisl.sourceforge.io/isl-${ISL_VERSION}.tar.xz                                                          ${ISL_SHA256}
 get https://github.com/libexpat/libexpat/releases/download/R_${EXPAT_VERSION//./_}/expat-${EXPAT_VERSION}.tar.xz     ${EXPAT_SHA256}
-get https://ftp.gnu.org/gnu/binutils/binutils-${BINUTILS_VERSION}.tar.xz                                             ${BINUTILS_SHA256}
-get https://ftp.gnu.org/gnu/gcc/gcc-${GCC_VERSION}/gcc-${GCC_VERSION}.tar.xz                                         ${GCC_SHA256}
+get https://mirrors.kernel.org/gnu/binutils/binutils-${BINUTILS_VERSION}.tar.xz                                      ${BINUTILS_SHA256}
+get https://mirrors.kernel.org/gnu/gcc/gcc-${GCC_VERSION}/gcc-${GCC_VERSION}.tar.xz                                  ${GCC_SHA256}
 get https://sourceforge.net/projects/mingw-w64/files/mingw-w64/mingw-w64-release/mingw-w64-v${MINGW_VERSION}.tar.bz2 ${MINGW_SHA256}
-get https://ftp.gnu.org/gnu/gdb/gdb-${GDB_VERSION}.tar.xz                                                            ${GDB_SHA256}
-get https://ftp.gnu.org/gnu/make/make-${MAKE_VERSION}.tar.gz                                                         ${MAKE_SHA256}
+get https://mirrors.kernel.org/gnu/gdb/gdb-${GDB_VERSION}.tar.xz                                                     ${GDB_SHA256}
+get https://mirrors.kernel.org/gnu/make/make-${MAKE_VERSION}.tar.gz                                                  ${MAKE_SHA256}
 
 mkdir -p ${BUILD}/x-binutils && pushd ${BUILD}/x-binutils
+sed -ri 's/(static bool insert_timestamp = )/\1!/' ${SOURCE}/binutils-${BINUTILS_VERSION}/ld/emultempl/pe*.em
+export CFLAGS="-Os"
+export CXXFLAGS="-Os"
+export LDFLAGS="-s"
 ${SOURCE}/binutils-${BINUTILS_VERSION}/configure \
   --prefix=${BOOTSTRAP}                          \
   --with-sysroot=${BOOTSTRAP}                    \
@@ -145,8 +149,8 @@ ${SOURCE}/gcc-${GCC_VERSION}/configure \
   --with-sysroot=${BOOTSTRAP}          \
   --target=${TARGET}                   \
   --enable-static                      \
-  --disable-shared                     \
-  --disable-lto                        \
+  --enable-shared                     \
+  --enable-lto                        \
   --disable-nls                        \
   --disable-multilib                   \
   --disable-werror                     \

@@ -1,4 +1,3 @@
-
 name: build-mingw
 
 on:
@@ -21,7 +20,6 @@ jobs:
       MAKE_VERSION: ${{ steps.build.outputs.MAKE_VERSION }}
 
     steps:
-
       - name: checkout
         uses: actions/checkout@v4
 
@@ -29,19 +27,19 @@ jobs:
         run: |
           sudo apt-get install --no-install-recommends -y \
             ca-certificates \
-            libgmp-dev      \
-            libmpc-dev      \
-            libmpfr-dev     \
-            libisl-dev      \
-            xz-utils        \
-            texinfo         \
-            patch           \
-            p7zip           \
-            cmake           \
-            make            \
-            curl            \
-            m4              \
-            gcc             \
+            libgmp-dev \
+            libmpc-dev \
+            libmpfr-dev \
+            libisl-dev \
+            xz-utils \
+            texinfo \
+            patch \
+            p7zip \
+            cmake \
+            make \
+            curl \
+            m4 \
+            gcc \
             g++
 
       - name: build
@@ -63,15 +61,31 @@ jobs:
       contents: write
     env:
       GH_TOKEN: ${{ github.token }}
-    steps:
+      TAG: gcc-v${{ needs.build.outputs.GCC_VERSION }}-mingw-v${{ needs.build.outputs.MINGW_VERSION }}
 
-      - name: release
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+
+      - name: delete existing release and tag
         run: |
-          echo 'GCC v${{ needs.build.outputs.GCC_VERSION }}'         >>notes.txt
-          echo 'MinGW-w64 v${{ needs.build.outputs.MINGW_VERSION }}' >>notes.txt
-          echo 'GDB v${{ needs.build.outputs.GDB_VERSION }}'         >>notes.txt
-          echo 'Make v${{ needs.build.outputs.MAKE_VERSION }}'       >>notes.txt
-          gh release create gcc-v${{ needs.build.outputs.GCC_VERSION }}-mingw-v${{ needs.build.outputs.MINGW_VERSION }} -R "${GITHUB_REPOSITORY}" -t 'gcc-v${{ needs.build.outputs.GCC_VERSION }}-mingw-v${{ needs.build.outputs.MINGW_VERSION }}' -F notes.txt
+          gh release delete "$TAG" --cleanup-tag -y || true
+
+      - name: create release
+        run: |
+          cat <<EOF > notes.txt
+          GCC v${{ needs.build.outputs.GCC_VERSION }}
+          MinGW-w64 v${{ needs.build.outputs.MINGW_VERSION }}
+          GDB v${{ needs.build.outputs.GDB_VERSION }}
+          Make v${{ needs.build.outputs.MAKE_VERSION }}
+          EOF
+
+          gh release create "$TAG" \
+            -R "${GITHUB_REPOSITORY}" \
+            -t "$TAG" \
+            -F notes.txt \
+            --draft=false \
+            --prerelease=false
 
       - name: get artifacts
         uses: actions/download-artifact@v4
@@ -80,4 +94,7 @@ jobs:
           merge-multiple: true
 
       - name: upload artifacts
-        run: gh release upload 'gcc-v${{ needs.build.outputs.GCC_VERSION }}-mingw-v${{ needs.build.outputs.MINGW_VERSION }}' gcc-v${{ needs.build.outputs.GCC_VERSION }}-mingw-v${{ needs.build.outputs.MINGW_VERSION }}-*.7z -R "${GITHUB_REPOSITORY}"
+        run: |
+          gh release upload "$TAG" \
+            gcc-v${{ needs.build.outputs.GCC_VERSION }}-mingw-v${{ needs.build.outputs.MINGW_VERSION }}-*.7z \
+            -R "${GITHUB_REPOSITORY}"
